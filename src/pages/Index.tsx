@@ -1,43 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
-import { Session } from '@supabase/supabase-js';
+import React, { useState } from 'react';
 
 // Everything is in this one component. A true monolith.
 const UnconventionalTaskManager = () => {
-    const [session, setSession] = useState<Session | null>(null);
-    const [loading, setLoading] = useState(true);
-    const navigate = useNavigate();
-
-    useEffect(() => {
-        const getSessionData = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            setSession(session);
-            setLoading(false);
-        };
-        
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setSession(session);
-            setLoading(false);
-        });
-
-        getSessionData();
-
-        return () => subscription.unsubscribe();
-    }, []);
-
-    useEffect(() => {
-        if (!loading && !session) {
-            navigate('/auth');
-        }
-    }, [session, loading, navigate]);
-    
-    const handleLogout = async () => {
-        await supabase.auth.signOut();
-        navigate('/auth');
-    };
-
     // Using 'any' to skip type safety, a classic anti-pattern.
     const [list, setList] = useState<any[]>([
         { id: Math.random(), task_text: "Figure out why this UI is so bad", completed: false },
@@ -73,14 +38,6 @@ const UnconventionalTaskManager = () => {
         );
     };
 
-    if (loading) {
-        return (
-            <div className="bg-gradient-to-tr from-pink-300 via-purple-300 to-indigo-400 min-h-screen p-4 font-mono w-full flex items-center justify-center">
-                <h1 className="text-yellow-300 text-5xl animate-ping">Connecting...</h1>
-            </div>
-        );
-    }
-
     return (
         // A loud background gradient that can make text hard to read.
         <div className="bg-gradient-to-tr from-pink-300 via-purple-300 to-indigo-400 min-h-screen p-4 font-mono w-full">
@@ -88,13 +45,6 @@ const UnconventionalTaskManager = () => {
                  <h1 style={{ fontSize: '3.5rem', color: '#FFFF00', textShadow: '3px 3px 0px #FF00FF', textAlign: 'center' }}>
                     TASK MANAGER 3000
                 </h1>
-                <button
-                    onClick={handleLogout}
-                    className="ml-8 bg-purple-600 text-white p-3 rounded-full hover:bg-red-700 hover:animate-spin"
-                    title="GTFO"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
-                </button>
             </div>
             <p className="text-right text-xs text-white absolute top-2 right-2">Tasks: {list.length}</p>
 
